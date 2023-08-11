@@ -1,10 +1,10 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
-
 
 /*
  * BOJ_15686 치킨배달 
@@ -18,6 +18,12 @@ import java.util.StringTokenizer;
  * 
  * -> 조합 필요 ->> 조합으로 최대 치킨 집 combination 돌리고
  * 도시의 치킨 거리 최솟값 구하기 
+ * 
+ * [이전 기록과 비교해보았을 때]
+ * - Java8 : 메모리 15020 / 시간 156ms
+ * - Python3 : 메모리 30840 / 시간 428ms
+ * -> 자바가 2배 이상 빠르다 !
+ * 
  * */
 
 public class Main {
@@ -51,38 +57,41 @@ public class Main {
 		}
 	}
 	
+	// 구간 길이를 구해주는 메서드 
+	public static int distance(mapPoint point1, mapPoint point2) {
+		return  Math.abs(point1.x - point2.x) + Math.abs(point1.y - point2.y);
+	}
+	
+	
+	// 우리집에서부터 가장 가까운 치킨거리 !
+	// 우리집에서 가장 가까운 "폐업하지 않은 치킨집"과의 거리를 구한다.
+	public static int chickenDistance(mapPoint myhome, mapPoint[] chickenHouseList) {
+		
+		int chickenDistance = Integer.MAX_VALUE; // 집 - 치킨집 사이의 가장 가까운 거리 
+		
+		// 한 치킨집이 집들을 탐색
+		for(mapPoint _chicken_house : chickenHouseList) {
+			// 치킨 거리 구하여, 더해주기
+			chickenDistance = Integer.min(distance(_chicken_house, myhome), chickenDistance); // 두 값중 더 작은 값이 치킨 거리
+		}
+		
+		return chickenDistance;
+	}
 
 	
 	// 폐업되지 않은 치킨집의 거리
-	public static void chickenDistance(mapPoint[] chickenHouseList) {
-		
-		/* 도시의 치킨 거리 !
-		 * - 도시의 치킨 거리는 모든 집의 치킨거리의 합이다 !!!
-		 *  치킨의 거리 구하고 최소 치킨의 거리를 찾아야 한다.
-		 * */
+	public static void cityChickenDistance(mapPoint[] chickenHouseList) {
+	
 		int cityDistance = 0; // 모든 집의 치킨 거리의 합
 		
 		// 치킨 거리 = 집과 가장 가까운 치킨집 사이의 거리
 		// 치킨집이 기준이 아니라 집이 기준 ㅋㅋ ㅜ -> 문제 잘못이해
 		for (mapPoint _house: myHouse) {
-			
-			int chickenDistance = Integer.MAX_VALUE; // 집 - 치킨집 사이의 가장 가까운 거리 
-			
-			// 한 치킨집이 집들을 탐색
-			for(mapPoint _chicken_house : chickenHouseList) {
-				// 치킨 거리 구하여, 더해주기
-				 int distance = Math.abs(_chicken_house.x - _house.x) + Math.abs(_chicken_house.y - _house.y);
-				 chickenDistance = Integer.min(distance, chickenDistance); // 두 값중 더 작은 값이 치킨 거리
-			}
-			
-			cityDistance += chickenDistance; // 도시의 치킨집 거리 더해주기
+			cityDistance += chickenDistance(_house, chickenHouseList); // 도시의 치킨집 거리 더해주기
 		}
-		// 도시의 치킨 거리
-		
-		// 도시의 치킨 거리를 최종 RESULT와 다시 비교
-		RESULT = Integer.min(cityDistance, RESULT);
-		
 
+		// 도시의 치킨 거리를 최종 RESULT와 다시 비교
+		RESULT = Integer.min(cityDistance, RESULT);		
 	}
 	
 	
@@ -93,7 +102,7 @@ public class Main {
 		// 전체 선택할 조건에 포함한다면?
 		if (selectedIdx == combiChickenHouse.length) {
 			// 결과
-			chickenDistance(combiChickenHouse);
+			cityChickenDistance(combiChickenHouse);
 			return;
 		}
 		
@@ -107,7 +116,7 @@ public class Main {
 		combination(elementIdx+1, selectedIdx +1);
 		
 		// 안넣는다면 ->선택 안함
-		//combiChickenHouse[selectedIdx] = 0; // 초기화
+		// combiChickenHouse[selectedIdx] = 0; // 초기화
 		combination(elementIdx+1, selectedIdx);
 		
 		
@@ -119,15 +128,18 @@ public class Main {
 		br = new BufferedReader(new InputStreamReader(System.in));
 		RESULT = Integer.MAX_VALUE; // 결과 값 초기화
 		
+		
 		// N과 M 입력 받기
 		st = new StringTokenizer(br.readLine().trim());
 		int N = Integer.parseInt(st.nextToken());
 		int M = Integer.parseInt(st.nextToken());
 		
+		
 		// N * N 입력 받기 & 초기화
 		map = new int [N][N]; // 입력 받을 도시 맵 
 		chickenHouse = new ArrayList<>(); // 객체 생성
 		myHouse = new ArrayList<>();
+		
 		
 		for (int row = 0; row < N; row++) {
 			st = new StringTokenizer(br.readLine());
@@ -145,6 +157,8 @@ public class Main {
 				}
 			}
 		} // end for map 
+		
+		
 		
 		// 치킨집 리스트 찾기
 		combiChickenHouse = new mapPoint[M]; //	 M 크기 만큼의 조합 돌리기
