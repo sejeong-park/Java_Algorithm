@@ -19,7 +19,6 @@ import java.util.StringTokenizer;
  * 
  * [문제 풀이]
  * - 조합을 기준으로 문제를 푼다. 
- * - 
  * */
 
 
@@ -58,25 +57,16 @@ public class Main {
 		}
 		
 	}
-	
-	public static void changeToString(char[] checkList) {
-		// char[]이 있으면 String.valueOf(charArray)
-		Arrays.sort(checkList);
-		System.out.println(checkList);
-	}
-	
+
 	
 	public static void combination(int selectIdx, int elementIdx) {
 		
-		// 기저 조건
-		// 만약 자음의 수가 2보다 작으면 종료
-		
+		// 기저 조건		
 		// 만약 선택한 수가 다 찼다면
 		if (selectIdx == selectList.length) {
 			// 만약 자음과 모음을 확인해서 true이라면
 			if (checkCondition(selectList)) {
 				sb.append(selectList).append("\n");
-				System.out.println(selectList);
 			}		
 			
 			return;
@@ -118,8 +108,9 @@ public class Main {
 		}
 		// wordList의 순서 유지
 		Arrays.sort(wordList);
-		combination(0,0);
+		combination(0,0); // 조합
 
+		System.out.println(sb);
 	}
 
 }
