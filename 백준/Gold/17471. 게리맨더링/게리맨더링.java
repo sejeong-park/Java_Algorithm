@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.StringTokenizer;
 
@@ -136,7 +135,7 @@ public class Main {
             if (regionSpace[regionNumber]) trueRegionPopulation += regionPeopleCnt[regionNumber];
             if (!regionSpace[regionNumber]) falseRegionPopulation += regionPeopleCnt[regionNumber];
         }
-
+        // 최소값 갱신
         minPopulationDifference = Math.min(minPopulationDifference, Math.abs(trueRegionPopulation - falseRegionPopulation));
     }
 
@@ -145,9 +144,11 @@ public class Main {
     public static void divideRegion(int[] region) {
         /**
          * @Parem : region
-         * checkRegion 메서드 : 현재 방문한 칸은 true / 아닌 칸은 false로 영역을 구분해준다.
-         * - region1을 이용하여, region2를 찾는다.
-         * - 두 영역은 나눈 한 영역끼리 "연결" 되어 있어야 한다.
+         * checkRegion 메서드 : 현재 방문한 칸은 true / 아닌 칸은 false로 영역을 구분해주는 메서드
+         * findConnection 메서드 : region 간 서로 연결되어 있는 지 확인하는 메서드
+         * populationDifference 메서드
+         * 만약 findConnection이 checkRegion으로 구분해준 t/f 영역이 모두 유효하다면 -> 인구 수를 비교할 가치가 있다.
+         * populationDifference로 true 영역에 해당하는 인구 수와 false 영역에 해당하는 인구 수를 구하여 <최소 인구수>를 갱신한다.
          * **/
         // 1. (1 ~ regionCnt+1)까지 false와 true로 영역의 칸을 구분함
         boolean [] regionSpace = checkRegion(region);
@@ -170,7 +171,8 @@ public class Main {
 
         // 기저 조건 : select 크기가 다 찼다면
         if (selectIdx == selected.length) {
-            divideRegion(selected); // 두 개의 영역 찾기
+            // 두 개의 영역 찾고 유효하다면 최소 인구 수 갱신하는 메서드
+            divideRegion(selected);
             return;
         }
 
