@@ -1,101 +1,93 @@
 import java.util.*;
-import java.awt.*;
+
+/**
+두 사람 선물 주고 받은 기록 - 이번 달까지 두 사람 사이에 더 많은 선물 준 사람이 담달에 선물 받음
+
+*/
+
 
 class Solution {
     
-    /**
-    선물하기 기능 -> 축하 선물 : 다음 달에 누가 선물을 많이 받을 지 예측
+    static int friendSize;
+    static Map<String, Integer> friendsMap; // 친구들의 순서가 담긴 맵
+    static int[][] giftsHistory; //  주고 받은 선물과 선물 지수
+    static int[] presentCnt;
+    static int answer;
     
-    [조건 1.]
-    - 두 사람이 선물 주고 받은 기록 
-    - 두 사람 사이에 더 많은 선물을 준 사람이 다음달에 선물 하나 받는다.
-    - A -> B 에게 5번  / B가 A에게 3번 -> A -> B에게 하나 받는다.
-    [조건 2.]
-    -  두사람이 선물 주고 받은 기록이 없거나 같으면, 선물 지수가 더 큰 사람이 선물지수가 더 작은 사람에게 선물을 하나 받는다.
-    1. 선물 지수 = 이번달까지 자신의 친구들에게 준 선물의 수 - 받은 선물의 수
-    2. 만약 선물지수도 같다면, 다음달에 선물을 주고 받지 않음
+
     
-    [결과]
-    선물을 가장 많이 받을 친구가 받을 선물의 수
-    */
-    
-    
-    static String[] friends;
-    
-    static int [][] giftTable;
-    static int [][] resultTable;
-    static HashMap<String, Integer> friendsIdx; 
-    
-    // friends index 번호 지정
-    public void init() {
-        friendsIdx = new HashMap<>();
-        for (int idx = 0; idx < friends.length; idx ++) {
-            friendsIdx.put(friends[idx], idx);
+    public void giveAndTake(){
+        // 두 사람이 선물을 주고 받은 기록이 있다면 이번 달까지 두 사람 사이에 더 많은 선물을 준 사람이 다음 달에 선물을 하나 받는다.
+        
+        presentCnt = new int[friendSize]; // 선물 지수
+        
+        for (int fromIdx = 0; fromIdx < friendSize; fromIdx ++) {
+            int getPresentCnt = 0;
+            int sendPresentCnt = 0;
+            for (int toIdx = 0; toIdx < friendSize; toIdx ++ ){
+                // 준 사람과 받은 사람 계산
+                // 무지가 준 선물의 개수
+                getPresentCnt += giftsHistory[fromIdx][toIdx];
+                sendPresentCnt += giftsHistory[toIdx][fromIdx];
+            }
+            presentCnt[fromIdx] = getPresentCnt - sendPresentCnt;
         }
     }
     
-    public int solution(String[] friends, String[] gifts) {
-        int answer = 0;
-        this.friends = friends; 
-        init();
-        
-        // giftTable 만들기
-        giftTable = new int[friends.length][friends.length];
-        for (int idx = 0; idx < gifts.length; idx ++ ){
-            String[] line = gifts[idx].split(" "); 
-            int fromIdx = friendsIdx.get(line[0]);
-            int toIdx = friendsIdx.get(line[1]);
-            giftTable[fromIdx][toIdx] += 1;
-        }
-        
-        // 준선물 / 받은 선물 구하기
-        resultTable = new int[friends.length][3];
-        for (int fromIdx = 0; fromIdx < friends.length; fromIdx ++) {
-            for (int toIdx = 0; toIdx < friends.length; toIdx ++) {
-                resultTable[fromIdx][0] += giftTable[fromIdx][toIdx];
-                resultTable[fromIdx][1] += giftTable[toIdx][fromIdx];
-            }
-            resultTable[fromIdx][2] = resultTable[fromIdx][0] - resultTable[fromIdx][1];
-        }
-        
-        
-        // 결과 구하기
-        int[] nextMonth = new int[friends.length];
-        for (int fromIdx = 0; fromIdx < friends.length; fromIdx ++){
-            for (int toIdx = 0; toIdx < friends.length; toIdx ++){
-                // 너가 나보다 선물을 많이 주면, 나에게 선물 하나를 받는다.
-                if (giftTable[fromIdx][toIdx] < giftTable[toIdx][fromIdx]){
-                    nextMonth[toIdx] += 1;
-                }else if (giftTable[fromIdx][toIdx] > giftTable[toIdx][fromIdx]) {
-                    nextMonth[fromIdx] += 1;
-                }else {
-                    // 만약 선물 기록이 없거나, 같다면, 선물 지수가 크면 선물을 받는다.
-                    if (resultTable[fromIdx][2] < resultTable[toIdx][2]) {
-                        nextMonth[toIdx] +=1;
-                    } else if (resultTable[toIdx][2] > resultTable[fromIdx][2]) {
-                        nextMonth[fromIdx] += 1;
-                    }   
+    public void findMaxPresentCnt() {
+        // 최대 선물 지수 구하기
+        int [] nextPresentCnt = new int[friendSize];
+        boolean[][] visited = new boolean[friendSize][friendSize];
+        for (int fromIdx = 0; fromIdx < friendSize; fromIdx++) {
+            for (int toIdx = fromIdx; toIdx < friendSize; toIdx++) {
+                // 양쪽 비교해서 더 큰 쪽이 갖는다.
+                if (visited[toIdx][fromIdx] || visited[fromIdx][toIdx]) continue;
+                if (giftsHistory[fromIdx][toIdx] < giftsHistory[toIdx][fromIdx]) {
+                    nextPresentCnt[toIdx] += 1;
                 }
-            }
+                else if (giftsHistory[fromIdx][toIdx] > giftsHistory[toIdx][fromIdx]) {
+                    nextPresentCnt[fromIdx] += 1;
+                }
+                else {
+                    if (presentCnt[fromIdx] < presentCnt[toIdx]) {
+                        nextPresentCnt[toIdx] += 1;
+                    }
+                    else if (presentCnt[fromIdx] > presentCnt[toIdx]) {
+                        nextPresentCnt[fromIdx] += 1;
+                    }
+                }
+                visited[fromIdx][toIdx] = true;
+                visited[toIdx][fromIdx] = true;
+            
+            } // end for jdx
+        } // end for idx
+        
+        for (int present : nextPresentCnt) {
+            answer = Math.max(present, answer);
         }
         
-        
-        for (int idx = 0; idx < friends.length; idx ++ ){
-            System.out.println(nextMonth[idx]);
-        }
-        
-        
-        for (int idx =0 ; idx < friends.length; idx++) {
-            for (int jdx = 0; jdx < 3; jdx ++) {
-                System.out.print(resultTable[idx][jdx] + " ");
-            }
-            System.out.println();
-        }
-        
+    }    
     
+    public int solution(String[] friends, String[] gifts) {
+        answer = 0;
         
+        // 친구들 맵에 넣기
+        friendSize = friends.length;
+        friendsMap = new HashMap<>();
+        for (int idx = 0; idx < friendSize; idx ++) {
+            friendsMap.put(friends[idx], idx); // 인덱스
+        }
         
-        
+        // 주고받은 선물 지수
+        giftsHistory = new int[friendSize][friendSize];
+        for (int idx = 0; idx < gifts.length; idx ++) {
+            String [] line = gifts[idx].split(" "); // 분할
+            int fromIdx = friendsMap.get(line[0]); // 준사람
+            int toIdx = friendsMap.get(line[1]); // 받은 사람
+            giftsHistory[fromIdx][toIdx] += 1;
+        }
+        giveAndTake();
+        findMaxPresentCnt();
         
         return answer;
     }
