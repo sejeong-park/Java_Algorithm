@@ -1,41 +1,45 @@
-
 import java.util.*;
+
 class Solution {
     
-    public int[][] copyLand(int[][] land) {
-        int [][] copy= new int [land.length][land[0].length];
+    static int [][] copy;
+    
+    static void copy(int [][] map) {
+        copy = new int [map.length][map[0].length];
         
-        for (int row = 0; row < land.length; row ++) {
-            for (int col = 0; col < land[0].length; col ++) {
-                copy[row][col] = land[row][col];
-            }
+        for (int idx = 0; idx < map.length; idx ++) {
+            copy[idx] = map[idx].clone();
         }
-        return copy;
     }
-     
-    public int solution(int[][] land) {
+    
+    int solution(int[][] land) {
         int answer = 0;
-        
-        // land를 dp 테이블로 만들기
-        int [][] dp = copyLand(land);
 
-        for (int row = 1; row < land.length; row ++) { // 한행씩 내려옴
+        copy(land);
+        
+        for (int row = 1; row < land.length; row ++) {
             for (int col = 0; col < land[0].length; col ++) {
-                // 한줄 전꺼 현재 위치 제외
-                int maxTarget = 0;
-                for (int idxCheck = 0; idxCheck < land[0].length; idxCheck++){
-                    if (col == idxCheck) continue;
-                    maxTarget = Math.max(dp[row - 1][idxCheck], maxTarget);
+                int max = 0;
+                for (int next = 0; next < land[0].length; next++) {
+                    if (col == next) continue;
+                    max = Math.max(max, copy[row - 1][next]);
                 }
-                dp[row][col] += maxTarget;
+                copy[row][col] += max;
             }
-            // System.out.println(Arrays.toString(dp[row]));
         }
         
-        // // 마지막 줄 중 최댓값
-        for (int score : dp[land.length - 1]) {
-            answer = Math.max(score, answer);
+        // for (int row = 0; row < land.length; row ++) {
+        //     for (int col = 0; col < land[0].length; col ++){
+        //         System.out.print(copy[row][col] + " ");
+        //     }
+        //     System.out.println();
+        // }
+        
+        
+        for (int col = 0; col < land[0].length; col ++) {
+            answer = Math.max(answer, copy[land.length-1][col]);
         }
+        
         return answer;
     }
 }
