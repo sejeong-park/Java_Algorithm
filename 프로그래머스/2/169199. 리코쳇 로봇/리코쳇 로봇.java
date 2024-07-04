@@ -1,88 +1,103 @@
 import java.util.*;
+import java.awt.*;
+/**
+최소 몇번만에 도달?
+. : 빈 공간
+R : 로봇의 첫 위치
+D : 장애물의 위치
+G : 목표 지점
+*/
 
 class Solution {
-    private final int[] dx = {-1, 1, 0, 0};
-    private final int[] dy = {0, 0, -1, 1};
-
-    private final char ROBOT = 'R', DISABLE = 'D', GOAL = 'G';
-
-    private int n, m;
-
-    private class Moving {
-        int x, y, depth;
-
-        public Moving(int x, int y, int depth) {
-            this.x = x;
-            this.y = y;
-            this.depth = depth;
-        }
+    // 상 하 좌 우
+    static int [] deltaRow = {-1, 1, 0, 0};
+    static int [] deltaCol = {0, 0, -1, 1};
+    
+    static final char START = 'R';
+    static final char WALL = 'D';
+    static final char END = 'G';
+    
+    static char [][] map;
+    static int [][] visited;
+    
+    static int rowSize;
+    static int colSize;
+    
+    static Point start;
+    static Point end;
+    
+    static int max = Integer.MIN_VALUE;
+    
+    public static boolean inMap(int row, int col) {
+        return row >= 0 && row < rowSize && col >= 0 && col < colSize;
     }
-
-    public int solution(String[] board) {
-        int answer = 0;
-
-        n = board.length;
-        m = board[0].length();
-
-        Moving robot = null;
-        Moving goal = null;
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                char ch = board[i].charAt(j);
-
-                if (ch == ROBOT) {
-                    robot = new Moving(i, j, 0);
-                } else if (ch == GOAL) {
-                    goal = new Moving(i, j, 0);
-                }
+    
+    public static int bfs() {
+        Deque<Point> queue = new ArrayDeque<>();
+        queue.add(start);
+        visited[start.x][start.y] = 1;
+        
+        while(!queue.isEmpty()) {
+            
+            Point now = queue.poll();
+            
+            // 확인
+            if (now.x == end.x && now.y == end.y) {
+                return visited[now.x][now.y] - 1;
             }
-        }
-
-        answer = bfs(board, robot, goal);
-
-        return answer;
-    }
-
-    private int bfs(String[] board, Moving robot, Moving goal) {
-        Queue<Moving> qu = new LinkedList<>();
-        qu.add(robot);
-        boolean[][] visited = new boolean[n][m];
-        visited[robot.x][robot.y] = true;
-
-        while (!qu.isEmpty()) {
-            Moving cn = qu.poll();
-
-            if (cn.x == goal.x && cn.y == goal.y) {
-                return cn.depth;
-            }
-
-            for (int i = 0; i < 4; i++) {
-                int nx = cn.x;
-                int ny = cn.y;
-
-                // 범위를 벗어나거나 장애물을 만날 때 까지 반복
-                while (inRange(nx, ny) && board[nx].charAt(ny) != DISABLE) {
-                    nx += dx[i];
-                    ny += dy[i];
+            
+            for (int direction = 0; direction < 4; direction ++) {
+                int nextRow = now.x;
+                int nextCol = now.y;
+                // 한 챕터가 움직이는 칸까지
+                while(true) {
+                    if (inMap(nextRow, nextCol) && map[nextRow][nextCol] != WALL) {
+                        nextRow += deltaRow[direction];
+                        nextCol += deltaCol[direction];
+                    }
+                    else {
+                        // 방문초과시 
+                        nextRow -= deltaRow[direction];
+                        nextCol -= deltaCol[direction];
+                        break; // 종료
+                    }
                 }
 
-                // 범위를 벗어나거나 장애물 만나기 '직전'의 상태
-                nx -= dx[i];
-                ny -= dy[i];
-
-                // 방문을 하거나 같은 위치일 경우 스킵
-                if (visited[nx][ny] || (cn.x == nx && cn.y == ny)) continue;
-
-                visited[nx][ny] = true;
-                qu.add(new Moving(nx, ny, cn.depth + 1));
+                // 방문한 적이 없다면
+                if (visited[nextRow][nextCol] != 0) continue;
+                
+                queue.add(new Point(nextRow, nextCol));
+                visited[nextRow][nextCol] = visited[now.x][now.y] + 1;
             }
         }
-
+        
         return -1;
     }
-
-    private boolean inRange(int x, int y) {
-        return x >= 0 && y >= 0 && x < n && y < m;
+    
+    
+    public int solution(String[] board) {
+        int answer = 0;
+        
+        rowSize = board.length;
+        colSize = board[0].length();
+        
+        map = new char[rowSize][colSize];
+        visited = new int[rowSize][colSize];
+        
+        for (int row = 0; row < rowSize; row ++) {
+            for (int col = 0; col < colSize; col ++) {
+                map[row][col] = board[row].charAt(col);
+                if (map[row][col] == START) {
+                    start = new Point(row, col);
+                }
+                if (map[row][col] == END) {
+                    end = new Point(row, col);
+                }
+            }
+        }
+        
+        answer = bfs();
+        
+        return answer;
     }
 }
