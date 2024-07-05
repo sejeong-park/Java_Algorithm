@@ -8,8 +8,6 @@ import java.awt.*;
 class Solution {
     
     static char [][] map;
-    static boolean [][] visited;
-    
     static final char STUDENT = 'P', WALL = 'X', EMPTY = 'O';
     
     static int [] deltaRow = {-1, 1, 0, 0};
@@ -24,6 +22,8 @@ class Solution {
     }
     
     public static boolean bfs(Point current) {
+        // current는 비교할 초기 응시자 포인트임!
+        
         boolean [][] visited = new boolean[5][5];
         
         Deque<Point> queue = new ArrayDeque<>();
@@ -34,22 +34,23 @@ class Solution {
             
             Point now = queue.poll();
             
+            // 만약 거리두기 내의 범위에 다른 응시자가 있다면? -> 자기 자신 제외
+            if (map[now.x][now.y] == STUDENT && now.x != current.x && now.y != current.y) {
+                if (getDistance(now.x, now.y, current.x, current.y)<=2) {
+                    return false;
+                } 
+            }
+            
+            
             for (int direction = 0; direction < 4; direction ++) {
                 int nextRow = now.x + deltaRow[direction];
                 int nextCol = now.y + deltaCol[direction];
                 
                 if (!inMap(nextRow, nextCol)) continue;
                 if (visited[nextRow][nextCol] || map[nextRow][nextCol] == WALL) continue;
-            
-                int distance = getDistance(current.x, current.y, nextRow, nextCol);
-                
-                if (map[nextRow][nextCol] == STUDENT && distance <= 2) {
-                    return false;
-                } 
-                else if (map[nextRow][nextCol] == EMPTY && distance < 2) {
-                    queue.add(new Point(nextRow, nextCol));
-                    visited[nextRow][nextCol] = true;
-                }
+                // 체크
+                queue.add(new Point(nextRow, nextCol));
+                visited[nextRow][nextCol] = true;
             }
         }
         
@@ -69,14 +70,16 @@ class Solution {
                 }
             }
         }
-
+        
+        int result = 1;
         for (Point person : student) {
             boolean flag = bfs(person);
             if (!flag) {
-                return 0;
+                result = 0;
+                return result;
             }
         }
-        return 1;
+        return result;
     }
     
     public int[] solution(String[][] places) {
