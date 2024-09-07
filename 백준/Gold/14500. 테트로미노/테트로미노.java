@@ -3,80 +3,87 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
+/**
+ * 정사각형 서로 겹치면 안돼
+ * 도형 모두 연결되어야해
+ * 정사각형 변끼리 연결
+ * */
 public class Main {
 
-	static int max = Integer.MIN_VALUE;
-	static int[][] arr;
-	static boolean[][] visit;
-	static int n;
-	static int m;
+    static BufferedReader br;
+    static StringTokenizer st;
 
-	// 상하좌우
-	static int[] dx = {-1,1,0,0};
-	static int[] dy = {0,0,-1,1};
+    static int rowSize, colSize;
+    static int [][] map;
+    static boolean [][] visited;
+    static int max;
 
-	public static void main(String[] args) throws NumberFormatException, IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static int[] deltaRow = {-1, 1, 0, 0};
+    static int[] deltaCol = {0, 0, -1, 1};
 
-		StringTokenizer st = new StringTokenizer(br.readLine());
+    static boolean inMap(int row, int col) {
+        return row >= 0 && row < rowSize && col >= 0 && col < colSize;
+    }
 
-		n = Integer.parseInt(st.nextToken());
-		m = Integer.parseInt(st.nextToken());
-		arr = new int[n][m];
-		visit = new boolean[n][m];
+    static void dfs(int row, int col, int sum, int count) {
+        // 테크노미노 수의 합
+        if (count == 4) {
+            max = Math.max(max, sum);
+            return;
+        }
 
-		// 입력
-		for(int i = 0; i < n; i++) {
-			st = new StringTokenizer(br.readLine());
-			for(int j = 0; j < m; j++) {
-				arr[i][j] = Integer.parseInt(st.nextToken());
-			}
-		}
+        for (int direction = 0; direction < 4; direction ++) {
+            int nextRow = row + deltaRow[direction];
+            int nextCol = col + deltaCol[direction];
 
-		// 전체 탐색 (dfs)
-		for(int i = 0; i < n; i++) {
-			for(int j = 0; j < m; j++) {
-				visit[i][j] = true;
-				solve(i,j,arr[i][j],1);
-				visit[i][j] = false;
-			}
-		}
+            // 업무 벗어나면
+            if (!inMap(nextRow, nextCol) || visited[nextRow][nextCol]) continue;
 
-		System.out.println(max);
-	}
+           // depth 2에서 ㅗ 만들어준다
+            if (count == 2) {
+                visited[nextRow][nextCol] = true;
+                dfs(row, col, sum + map[nextRow][nextCol], count + 1);
+                visited[nextRow][nextCol] = false;
+            }
 
-	static void solve(int row, int col, int sum, int count) {
+            // 일반 방문
+            visited[nextRow][nextCol] = true;
+            dfs(nextRow, nextCol, sum + map[nextRow][nextCol], count + 1);
+            visited[nextRow][nextCol] = false;
+        }
 
-		// 테트로미노 완성 시 수들의 합 계산
-		if(count == 4) {
-			max = Math.max(max, sum);
-			return;
-		}
+    }
 
-		// 상하좌우 탐색
-		for(int i = 0; i < 4; i++) {
-			int curRow = row + dx[i];
-			int curCol = col + dy[i];
 
-			// 범위 벗어나면 예외 처리
-			if(curRow < 0 || curRow >= n || curCol < 0 || curCol >= m) {
-				continue;
-			}
+    public static void main(String[] args) throws IOException {
 
-			// 아직 방문하지 않은 곳이라면
-			if(!visit[curRow][curCol]) {
+        br = new BufferedReader(new InputStreamReader(System.in));
 
-				// 보라색(ㅗ) 테트로미노 만들기 위해 2번째 칸에서 탐색 한번 더 진행
-				if(count == 2) {
-					visit[curRow][curCol] = true;
-					solve(row, col, sum + arr[curRow][curCol], count + 1);
-					visit[curRow][curCol] = false;
-				}
+        st = new StringTokenizer(br.readLine().trim());
+        rowSize = Integer.parseInt(st.nextToken());
+        colSize = Integer.parseInt(st.nextToken());
 
-				visit[curRow][curCol] = true;
-				solve(curRow, curCol, sum + arr[curRow][curCol], count + 1);
-				visit[curRow][curCol] = false;
-			}
-		}
-	}
+        max = Integer.MIN_VALUE;
+
+        map = new int[rowSize][colSize];
+        visited = new boolean[rowSize][colSize];
+
+        for (int row = 0; row < rowSize; row++) {
+            st = new StringTokenizer(br.readLine().trim());
+            for (int col = 0; col < colSize; col ++){
+                map[row][col] = Integer.parseInt(st.nextToken());
+            }
+        }
+
+        // 전체 탐색 -> backtracking
+        for (int row = 0; row < rowSize; row ++) {
+            for (int col = 0; col < colSize; col ++) {
+                visited[row][col] = true;
+                dfs(row, col, map[row][col], 1); // dfs
+                visited[row][col] = false;
+            }
+        }
+
+        System.out.println(max);
+    }
 }
