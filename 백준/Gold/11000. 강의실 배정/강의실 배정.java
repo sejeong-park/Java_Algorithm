@@ -1,8 +1,6 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.Array;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.StringTokenizer;
@@ -12,39 +10,34 @@ public class Main {
     static BufferedReader br;
     static StringTokenizer st;
 
+
     public static void main(String[] args) throws IOException {
 
         br = new BufferedReader(new InputStreamReader(System.in));
 
         int N = Integer.parseInt(br.readLine().trim());
 
-        int [][] lecture = new int[N][2];
-
-        for (int idx = 0; idx < N; idx ++) {
+        int[][] timeTable = new int[N][2];
+        for (int idx = 0; idx < N; idx++) {
             st = new StringTokenizer(br.readLine().trim());
-
-            int start = Integer.parseInt(st.nextToken());
-            int end = Integer.parseInt(st.nextToken());
-            lecture[idx] = new int[]{start, end};
+            timeTable[idx][0] = Integer.parseInt(st.nextToken());
+            timeTable[idx][1] = Integer.parseInt(st.nextToken());
         }
 
-          // 정렬
-        Arrays.sort(lecture, (o1, o2) -> o1[0] == o2[0] ? o1[1] - o2[1] : o1[0] - o2[0]);
+        // 만약 시작 시간이 동일하면 종료값으로 비교
+        Arrays.sort(timeTable, (o1, o2) -> o1[0] == o2[0] ? o1[1] - o2[1] : o1[0] - o2[0]);
 
-
-        PriorityQueue<Integer> pq = new PriorityQueue<>();
-        pq.add(lecture[0][1]);
-
-        // 찾기
-        for (int idx = 1; idx < N; idx ++) {
-            // pq 제일 위에 있는거보다 시작시간이 작을때
-            if (pq.peek() <= lecture[idx][0]) {
-                pq.poll();
+        // 종료 시간을 넣는다.
+        PriorityQueue<Integer> queue = new PriorityQueue<>();
+        queue.add(timeTable[0][1]); // 첫번째 종료 시간
+        for (int idx = 1; idx < N; idx++) {
+            // 만약 앞에 거보다 시작 시간 작거나 같을경우 -> 여러개 생김
+            if (queue.peek() <= timeTable[idx][0]) {
+                queue.poll(); //
             }
-            pq.offer(lecture[idx][1]);
+            queue.add(timeTable[idx][1]);
         }
-
-        System.out.println(pq.size());
+        System.out.println(queue.size());
     }
 
 }
